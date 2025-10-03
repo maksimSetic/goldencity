@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
 const userRouter = require("./routes/userRoute");
+const notesRouter = require("./routes/notesRoute");
 
 const app = express();
 
@@ -15,7 +16,8 @@ if (process.env.NODE_ENV !== "production") {
 app.use(express.json());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/api/user', userRouter);
+app.use("/api/user", userRouter);
+app.use("/api/notes", notesRouter);
 app.use(fileUpload());
 
 // deployment
