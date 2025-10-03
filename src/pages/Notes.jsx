@@ -14,6 +14,7 @@ function Notes() {
   const [newlyCreatedId, setNewlyCreatedId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [toDeleteId, setToDeleteId] = useState(null);
 
   const formatDate = (iso) => {
     if (!iso) return "—";
@@ -220,7 +221,7 @@ function Notes() {
                       <FaEdit />
                     </button>
                     <button
-                      onClick={() => handleDelete(note.id)}
+                      onClick={() => setToDeleteId(note.id)}
                       className="text-red-500 hover:text-red-700 p-2 rounded"
                       aria-label="Delete"
                     >
@@ -330,6 +331,46 @@ function Notes() {
                   </button>
                 )}
               </form>
+            </motion.div>
+          </motion.div>
+        )}
+        {toDeleteId && (
+          <motion.div
+            key="confirm-delete-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-60"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.15 }}
+              className="bg-white rounded-lg p-6 shadow-xl min-w-[280px] max-w-[90vw]"
+            >
+              <div className="text-lg font-semibold mb-3">Are you sure?</div>
+              <div className="text-sm text-gray-600 mb-4">
+                This action will permanently delete the note.
+              </div>
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-800 hover:scale-105 transition-transform duration-200"
+                  onClick={() => setToDeleteId(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-red-600 text-white hover:scale-105 transition-transform duration-200"
+                  onClick={async () => {
+                    const id = toDeleteId;
+                    setToDeleteId(null);
+                    await handleDelete(id);
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
