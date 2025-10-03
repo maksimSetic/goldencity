@@ -10,6 +10,7 @@ import {
 } from "@web3icons/react";
 import { ethers } from "ethers";
 import WalletConnectProvider from "@walletconnect/web3-provider";
+import CoinbaseWalletSDK from "@coinbase/wallet-sdk";
 
 const SOFTWARE_WALLETS = [
   { name: "MetaMask", id: "metamask" },
@@ -134,9 +135,46 @@ function ConnectWallet({ buttonClass, buttonChildren }) {
         setStatus("Connected: " + short(address));
         return;
       }
+
+      try {
+        const APP_NAME = "GoldenCity";
+        const APP_LOGO_URL = "";
+        const DEFAULT_RPC = "https://cloudflare-eth.com";
+        const coinbaseWallet = new CoinbaseWalletSDK({
+          appName: APP_NAME,
+          appLogoUrl: APP_LOGO_URL,
+          darkMode: false,
+        });
+        const cbProvider = coinbaseWallet.makeWeb3Provider(DEFAULT_RPC, 1);
+        await cbProvider.request({ method: "eth_requestAccounts" });
+        const provider = new ethers.providers.Web3Provider(cbProvider);
+        const signer = provider.getSigner();
+        const address = await signer.getAddress();
+        setConnectedAddress(address);
+        setExternalProvider(cbProvider);
+        setStatus("Connected: " + short(address));
+        return;
+      } catch (cbErr) {
+        console.warn(
+          "Coinbase SDK desktop connect failed, falling back:",
+          cbErr.message || cbErr
+        );
+      }
+
       await connectWalletConnect();
     } catch (err) {
-      setStatus("Connection failed: " + (err.message || err));
+      if (
+        err &&
+        err.message &&
+        err.message.toLowerCase().includes("websocket")
+      ) {
+        console.warn("WalletConnect websocket issue suppressed:", err.message);
+        setStatus(
+          "Connection failed (wallet connectivity). Try a different wallet."
+        );
+      } else {
+        setStatus("Connection failed: " + (err.message || err));
+      }
     }
   };
 
